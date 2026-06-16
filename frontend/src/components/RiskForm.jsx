@@ -18,22 +18,22 @@ const wealthIndexOptions = [
   { value: 5, label: "Richest" },
 ];
 const birthTypeOptions = [
-  { value: 1, label: "Single birth" },
-  { value: 2, label: "Twin birth" },
-  { value: 3, label: "Triplet or higher" },
+  { value: 0, label: "Single birth" },
+  { value: 1, label: "Twin birth" },
+  { value: 2, label: "Triplet or higher" },
 ];
 
 const sexOptions = [
-  { value: 1, label: "Female" },
-  { value: 2, label: "Male" },
+  { value: 2, label: "Female" },
+  { value: 1, label: "Male" },
 ];
 
 const sizeAtBirthOptions = [
-  { value: 1, label: "Very small" },
-  { value: 2, label: "Smaller than average" },
+  { value: 5, label: "Very small" },
+  { value: 4, label: "Smaller than average" },
   { value: 3, label: "Average" },
-  { value: 4, label: "Larger than average" },
-  { value: 5, label: "Very large" },
+  { value: 2, label: "Larger than average" },
+  { value: 1, label: "Very large" },
   { value: 8, label: "Don't know" },
 ];
 
