@@ -17,7 +17,9 @@ low_risk_case = {
     "v106": 2,         # Secondary education or higher
     "v190": 3,         # Higher wealth index
     "m14": 4,          # Multiple ANC visits
-    "bord": 2          # 2nd or 3rd birth (not first)
+    "bord": 2,         # 2nd or 3rd birth (not first)
+    "m19": 3200,       # Birth weight in grams
+    "low_birth_weight": 0
 }
 
 # Test Case 2: High Risk Profile
@@ -35,7 +37,9 @@ high_risk_case = {
     "v106": 0,         # No education or primary only
     "v190": 0,         # Lowest wealth index
     "m14": 0,          # No ANC visits
-    "bord": 1          # First birth
+    "bord": 1,         # First birth
+    "m19": 2000,       # Low birth weight in grams
+    "low_birth_weight": 1
 }
 
 # Test Case 3: Mixed Risk - Teenage Mother with Good Support
@@ -52,7 +56,9 @@ mixed_case_1 = {
     "v106": 1,         # Primary education
     "v190": 2,         # Medium wealth
     "m14": 2,          # Some ANC visits
-    "bord": 1          # First birth
+    "bord": 1,         # First birth
+    "m19": 2800,
+    "low_birth_weight": 0
 }
 
 # Test Case 4: Older Mother, Multiparous (Multiple births)
@@ -69,7 +75,9 @@ mixed_case_2 = {
     "v106": 2,         # Secondary/higher education
     "v190": 2,         # Medium-high wealth
     "m14": 4,          # Good ANC visits
-    "bord": 4          # 4th birth
+    "bord": 4,         # 4th birth
+    "m19": 3500,
+    "low_birth_weight": 0
 }
 
 # Test Case 5: Minimal Healthcare Access
@@ -86,7 +94,9 @@ high_risk_case_2 = {
     "v106": 0,         # No/minimal education
     "v190": 0,         # Poorest
     "m14": 0,          # No antenatal care
-    "bord": 1          # First birth
+    "bord": 1,         # First birth
+    "m19": 1800,
+    "low_birth_weight": 1
 }
 
 # Test Case 6: Well-Resourced, Healthy Profile
@@ -103,7 +113,9 @@ optimal_case = {
     "v106": 3,         # Higher education (assumed coding)
     "v190": 4,         # Highest wealth (if scale 0-4)
     "m14": 4,          # Full ANC visits
-    "bord": 2          # Not first birth
+    "bord": 2,         # Not first birth
+    "m19": 3300,
+    "low_birth_weight": 0
 }
 
 # Test Cases Dictionary

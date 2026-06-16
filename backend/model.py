@@ -34,20 +34,36 @@ data["b7"] = pd.to_numeric(data["b7"], errors='coerce')
 print(data["m18"].value_counts().sort_index())
 # Infant mortality: child died before 12 months
 data['infant_mortality'] = ((data["b5"] == 0) & (data["b7"] < 12)).astype(int)
-
+print(data["b0"].value_counts().sort_index())
+print(
+    data.groupby("b0")["infant_mortality"]
+        .mean()
+)
 # ── Clean m19 (actual birth weight in grams) ──────────────────────────
 # DHS sentinel codes 9996/9997/9998 = "don't know / missing" — null them out
 data["m19"] = pd.to_numeric(data["m19"], errors='coerce')
 data["m19"] = data["m19"].replace({9996: np.nan, 9997: np.nan, 9998: np.nan})
-
-# Derived clinical feature: low birth weight (< 2500 g) — strong mortality predictor
-data["low_birth_weight"] = (data["m19"] < 2500).astype('Int8')  # NaN-safe
-
+print(data["m19"].isna().mean())
+data["low_birth_weight"] = np.where(
+    data["m19"].isna(),
+    np.nan,
+    (data["m19"] < 2500).astype(int)
+)
 print(f"Infant mortality cases : {data['infant_mortality'].sum()}")
 print(f"Total records          : {len(data)}")
 print(f"Mortality rate         : {data['infant_mortality'].mean()*100:.2f}%")
-print(f"Low birth weight cases : {data['low_birth_weight'].sum()}\n")
 
+print(
+    data.groupby("low_birth_weight")
+        ["infant_mortality"]
+        .mean()
+)
+print(
+    data.groupby("m14")
+        ["infant_mortality"]
+        .mean()
+        .head(15)
+)
 # ─────────────────────────────────────────────
 # 2. FEATURE SELECTION
 # ─────────────────────────────────────────────
@@ -66,17 +82,19 @@ cols = [
     "m14",             # ANC visits
     "bord",            # Birth order
     "m19",             # Actual birth weight (grams)  ← NEW
-    "low_birth_weight" # Derived: LBW flag            ← NEW
 ]
 
 df_model = data[cols + ["infant_mortality"]].copy()
 
-# ─────────────────────────────────────────────
-# 3. PREPROCESSING
-# ─────────────────────────────────────────────
+
 categorical_cols = ['b0', 'b4', 'm18', 'm15', 'v025', 'm17']
-numeric_cols     = ['b11', 'v012', 'v136', 'v106', 'v190', 'm14', 'bord',
-                    'm19', 'low_birth_weight']
+numeric_cols     = ['b11', 'v012', 'v106', 'v190', 'm14', 'bord','v136',
+                    'm19']
+print(
+    data.groupby("v136")["infant_mortality"]
+        .agg(["count","sum","mean"])
+        .head(10)
+)
 
 df_model = pd.get_dummies(df_model, columns=categorical_cols, drop_first=False)
 df_model[numeric_cols] = df_model[numeric_cols].apply(pd.to_numeric, errors='coerce')
@@ -86,11 +104,7 @@ df_model[bool_cols] = df_model[bool_cols].astype(int)
 
 X = df_model.drop('infant_mortality', axis=1)
 Y = df_model["infant_mortality"]
-
-# ─────────────────────────────────────────────
-# 4. THREE-WAY SPLIT  (train / val / test)
-#    Val used for threshold search — test never touched until final eval
-# ─────────────────────────────────────────────
+print(data.groupby("m18")["infant_mortality"].mean())
 X_temp, X_test, y_temp, y_test = train_test_split(
     X, Y, test_size=0.15, stratify=Y, random_state=42
 )
@@ -100,18 +114,11 @@ X_train, X_val, y_train, y_val = train_test_split(
 
 print(f"Train : {len(X_train)}  |  Val : {len(X_val)}  |  Test : {len(X_test)}\n")
 
-# ─────────────────────────────────────────────
-# 5. IMPUTATION  (fit on train only — no leakage)
-# ─────────────────────────────────────────────
 imputer = SimpleImputer(strategy='median')
 X_train_imp = pd.DataFrame(imputer.fit_transform(X_train), columns=X_train.columns)
 X_val_imp   = pd.DataFrame(imputer.transform(X_val),       columns=X_val.columns)
 X_test_imp  = pd.DataFrame(imputer.transform(X_test),      columns=X_test.columns)
 
-# ─────────────────────────────────────────────
-# 6. MODERATE SMOTE
-#    28:1 natural ratio → target ~5:1 (minority = 20% of majority)
-# ─────────────────────────────────────────────
 natural_ratio = (y_train == 1).sum() / (y_train == 0).sum()
 smote_ratio   = min(0.20, natural_ratio * 3)
 
@@ -123,10 +130,6 @@ print(f"  Survival : {(y_train_sm==0).sum()}")
 print(f"  Mortality: {(y_train_sm==1).sum()}")
 print(f"  Ratio    : {(y_train_sm==0).sum()/(y_train_sm==1).sum():.1f}:1\n")
 
-# ─────────────────────────────────────────────
-# 7. OPTUNA HYPERPARAMETER SEARCH
-#    Evaluated on val set — no test leakage
-# ─────────────────────────────────────────────
 IMBALANCE_RATIO = (y_train_sm == 0).sum() / (y_train_sm == 1).sum()
 
 def xgb_objective(trial):

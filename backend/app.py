@@ -17,14 +17,13 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 # Load model and features
 model = joblib.load('./infant_mortality_model.pkl')
 features = joblib.load('./model_features.pkl')
-
 # Load calibrator and optimal threshold for handling class imbalance
 try:
     calibrator = joblib.load('./probability_calibrator.pkl')
     optimal_threshold = joblib.load('./optimal_threshold.pkl')
-    print(f"✓ Loaded calibrator and optimal threshold: {optimal_threshold:.2f}")
+    print(f"Loaded calibrator and optimal threshold: {optimal_threshold:.2f}")
 except FileNotFoundError:
-    print("⚠ Calibrator or threshold not found. Using raw probabilities and default threshold (0.5)")
+    print("Calibrator or threshold not found. Using raw probabilities and default threshold (0.5)")
     calibrator = None
     optimal_threshold = 0.5
 class PredictionRequest(BaseModel):
@@ -41,6 +40,8 @@ class PredictionRequest(BaseModel):
     v190: int
     m14: int
     bord: int
+    m19:int
+    low_birth_weight: int
 # Initialize SHAP explainer
 explainer = shap.TreeExplainer(model)
 latest_prediction={}
@@ -58,7 +59,9 @@ FEATURE_MAP = {
     "v106": "Mother's Education",
     "v190": "Wealth Index",
     "m14": "ANC Visits",
-    "bord": "Birth Order"
+    "bord": "Birth Order",
+    "m19": "Birth Weight",
+    "low": "Low Birth Weight"
 }
 # Create FastAPI app
 app = FastAPI(title='Infant Mortality Predictor')
@@ -79,12 +82,11 @@ def home():
 def predict(data: PredictionRequest):
 
     # Convert input to DataFrame
-    raw_df = pd.DataFrame([data.model_dump()])
-
+    raw_df = pd.DataFrame([data.model_dump()]) 
     # One-hot encoding
     df = pd.get_dummies(
         raw_df,
-        columns=["b0", "b4", "m18", "m15", "v025", "m17"],
+        columns=["b0", "b4", "m18", "m15", "v025", "m17" ],
         drop_first=False
     )
 
@@ -97,7 +99,7 @@ def predict(data: PredictionRequest):
 
     # Match training feature order
     df = df[features]
-
+    print(df.T)
     # Prediction
     raw_score = float(model.predict_proba(df)[0][1])
 
@@ -106,7 +108,18 @@ def predict(data: PredictionRequest):
         risk_of_death = float(calibrator.predict_proba(df)[0][1])
     else:
         risk_of_death = raw_score
+    raw_prob = float(model.predict_proba(df)[0][1])
 
+    if calibrator is not None:
+        calibrated_prob = float(
+            calibrator.predict_proba(df)[0][1]
+        )
+    else:
+        calibrated_prob = raw_prob
+
+    print("RAW PROBABILITY:", raw_prob)
+    print("CALIBRATED PROBABILITY:", calibrated_prob)
+    
     # Three-tier risk classification using rare-event thresholds
     if risk_of_death < 0.05:
         prediction = "Low Risk"

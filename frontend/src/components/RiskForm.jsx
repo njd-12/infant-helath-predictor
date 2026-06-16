@@ -79,17 +79,30 @@ const RiskForm = () => {
   v190: "",
   m14: "",
   bord: "",
+  m19: "",
+  low_birth_weight: 0,
 });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: Number(e.target.value),
-    });
+const handleChange = (e) => {
+  const name = e.target.name;
+  const value = Number(e.target.value);
+
+  let updatedData = {
+    ...formData,
+    [name]: value,
   };
+
+  // Automatically derive low_birth_weight
+  if (name === "m19") {
+    updatedData.low_birth_weight =
+      value > 0 && value < 2500 ? 1 : 0;
+  }
+
+  setFormData(updatedData);
+};
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -182,7 +195,15 @@ localStorage.setItem(
     ))}
   </select>
 </Field>
-
+<Field label="Birth Weight (grams)">
+  <input
+    type="number"
+    name="m19"
+    className="input"
+    placeholder="e.g. 3200"
+    onChange={handleChange}
+  />
+</Field>
 <Field label="Place of Delivery">
   <select name="m15" onChange={handleChange} className="input">
     <option value="">Select</option>
