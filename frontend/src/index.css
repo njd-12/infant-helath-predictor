@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/* 🌈 GLOBAL BACKGROUND */
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  min-height: 100vh;
+}
+
+/* 🧊 GLASS CARD EFFECT */
+.card {
+  @apply bg-white/80 backdrop-blur-md shadow-xl rounded-2xl border border-gray-200;
+}
+
+/* ✨ INPUT STYLING (PREMIUM) */
+.input {
+  @apply w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white shadow-sm transition-all duration-300;
+}
+
+.input:focus {
+  @apply outline-none ring-2 ring-blue-400 border-blue-400 shadow-md;
+}
+
+/* 🎯 BUTTON STYLE */
+.btn-primary {
+  @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md transition-all duration-300;
+}
+
+.btn-primary:hover {
+  @apply scale-105 shadow-lg;
+}
+
+/* 🧾 SECTION TITLE */
+.section-title {
+  @apply text-xl font-semibold text-gray-800 mb-3;
+}
+
+/* 📦 CARD HOVER */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:scale-[1.02];
+}
+
+/* 📊 SMOOTH PROGRESS BAR */
+.progress-bar {
+  @apply h-4 rounded-full transition-all duration-500 ease-out;
+}
+
+/* 🌟 SCROLLBAR (SUBTLE PREMIUM TOUCH) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #3b82f6, #6366f1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
