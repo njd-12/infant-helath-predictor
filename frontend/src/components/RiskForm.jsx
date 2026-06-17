@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Baby, Send } from "lucide-react";
 import { getRiskPrediction } from "../api/predict";
+import { saveReport } from "../api/auth";
+import { useAuth } from "../context/AuthContext";
 import History from "./History";
 const educationOptions = [
   { value: 0, label: "No Education" },
@@ -64,6 +66,7 @@ const Field = ({ label, children }) => (
 
 const RiskForm = () => {
   const navigate = useNavigate();
+  const { auth } = useAuth();
 
  const [formData, setFormData] = useState({
   b0: "",
@@ -110,22 +113,24 @@ const handleChange = (e) => {
 
     try {
       const data = await getRiskPrediction(formData);
-const existing =
-  JSON.parse(localStorage.getItem("prediction_history")) || [];
 
-const newEntry = {
-  ...data,
-  time: new Date().toLocaleString(),
-};
+      // Save to localStorage history
+      const existing = JSON.parse(localStorage.getItem("prediction_history")) || [];
+      const newEntry = { ...data, time: new Date().toLocaleString() };
+      localStorage.setItem("prediction_history", JSON.stringify([...existing, newEntry].slice(-10)));
 
-localStorage.setItem(
-  "prediction_history",
-  JSON.stringify([...existing, newEntry].slice(-10))
-);
-      navigate("/result", {
-        state: { result: data },
-      });
+      // Save to MongoDB if logged in as user
+      if (auth?.user?.role === "user") {
+        await saveReport(auth.token, {
+          modelScore:  data.model_score,
+          riskOfDeath: data.risk_of_death,
+          prediction:  data.prediction,
+          topFactors:  data.top_factors,
+          formData,
+        });
+      }
 
+      navigate("/result", { state: { result: data } });
     } catch (err) {
       setError("Failed to fetch prediction. Check backend.");
     } finally {

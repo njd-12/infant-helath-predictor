@@ -4,9 +4,16 @@ import os
 
 load_dotenv()
 
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+_client = None
+
+def _get_client():
+    global _client
+    if _client is None:
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY is not set. Please add it to your .env file.")
+        _client = genai.Client(api_key=api_key)
+    return _client
 
 SYSTEM_PROMPT = """
 You are an AI healthcare assistant for maternal and infant care.
@@ -43,8 +50,8 @@ def get_chat_response(user_message, prediction_data=None):
 
     try:
 
-        response = client.models.generate_content(
-            model="gemini-3-flash-preview",
+        response = _get_client().models.generate_content(
+            model="gemini-2.5-flash",
             contents=prompt
         )
 
